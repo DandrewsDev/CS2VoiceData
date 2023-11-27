@@ -3,13 +3,14 @@ package main
 import (
 	"CS2VoiceData/decoder"
 	"fmt"
+	"log"
+	"os"
+	"strconv"
+
 	"github.com/go-audio/audio"
 	"github.com/go-audio/wav"
 	dem "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs"
 	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/msgs2"
-	"log"
-	"os"
-	"strconv"
 )
 
 func main() {
@@ -65,7 +66,7 @@ func convertAudioDataToWavFiles(payloads [][]byte, fileName string) {
 		}
 
 		// Not silent frame
-		if len(c.Data) > 0 {
+		if c != nil && len(c.Data) > 0 {
 			pcm, err := voiceDecoder.Decode(c.Data)
 
 			if err != nil {
