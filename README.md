@@ -19,7 +19,7 @@ tools.
    2. `go get ./...`
 3. Update the cs2-voide-data.go file with the path to your unzipped demo file.
 4. Running the sample
-   5. `go run cs2-voide-data.go`
+   5. `go run cs2-voice-data.go`
 
 
 ## Dependencies
