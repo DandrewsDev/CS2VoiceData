@@ -26,12 +26,14 @@ func main() {
 	defer file.Close()
 
 	parser := dem.NewParser(file)
+	var format string
 
 	// Add a parser register for the VoiceData net message.
 	parser.RegisterNetMessageHandler(func(m *msgs2.CSVCMsg_VoiceData) {
 		// Get the users Steam ID 64.
 		steamId := strconv.Itoa(int(m.GetXuid()))
 		// Append voice data to map
+		format = m.Audio.Format.String()
 		voiceDataPerPlayer[steamId] = append(voiceDataPerPlayer[steamId], m.Audio.VoiceData)
 	})
 
@@ -41,7 +43,16 @@ func main() {
 	// For each users data, create a wav file containing their voice comms.
 	for playerId, voiceData := range voiceDataPerPlayer {
 		wavFilePath := fmt.Sprintf("%s.wav", playerId)
-		convertAudioDataToWavFiles(voiceData, wavFilePath)
+		if format == "VOICEDATA_FORMAT_OPUS" {
+			err = opusToWav(voiceData, wavFilePath)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+		} else if format == "VOICEDATA_FORMAT_STEAM" {
+			convertAudioDataToWavFiles(voiceData, wavFilePath)
+		}
 	}
 
 	defer parser.Close()
@@ -107,4 +118,53 @@ func convertAudioDataToWavFiles(payloads [][]byte, fileName string) {
 	}
 
 	enc.Close()
+}
+
+func opusToWav(data [][]byte, wavName string) (err error) {
+	opusDecoder, err := decoder.NewDecoder(48000, 1)
+	if err != nil {
+		return
+	}
+
+	var pcmBuffer []int
+
+	for _, d := range data {
+		pcm, err := decoder.Decode(opusDecoder, d)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		pp := make([]int, len(pcm))
+
+		for i, p := range pcm {
+			pp[i] = int(p * 2147483647)
+		}
+
+		pcmBuffer = append(pcmBuffer, pp...)
+	}
+
+	file, err := os.Create(wavName)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	enc := wav.NewEncoder(file, 48000, 32, 1, 1)
+	defer enc.Close()
+
+	buffer := &audio.IntBuffer{
+		Data: pcmBuffer,
+		Format: &audio.Format{
+			SampleRate:  48000,
+			NumChannels: 1,
+		},
+	}
+
+	err = enc.Write(buffer)
+	if err != nil {
+		return
+	}
+
+	return
 }
