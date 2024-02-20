@@ -117,3 +117,19 @@ func (d *OpusDecoder) decodeLoss(samples uint16) ([]float32, error) {
 
 	return o, nil
 }
+
+func NewDecoder(sampleRate, channels int) (decoder *opus.Decoder, err error) {
+	decoder, err = opus.NewDecoder(sampleRate, channels)
+	return
+}
+
+func Decode(decoder *opus.Decoder, data []byte) (pcm []float32, err error) {
+	pcm = make([]float32, 1024)
+
+	nlen, err := decoder.DecodeFloat32(data, pcm)
+	if err != nil {
+		return
+	}
+
+	return pcm[:nlen], nil
+}
