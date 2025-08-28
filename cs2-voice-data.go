@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-audio/audio"
 	"github.com/go-audio/wav"
-	dem "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs"
-	"github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/msgs2"
+	dem "github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs"
+	"github.com/markus-wa/demoinfocs-golang/v5/pkg/demoinfocs/msg"
 )
 
 func main() {
@@ -29,7 +29,7 @@ func main() {
 	var format string
 
 	// Add a parser register for the VoiceData net message.
-	parser.RegisterNetMessageHandler(func(m *msgs2.CSVCMsg_VoiceData) {
+	parser.RegisterNetMessageHandler(func(m *msg.CSVCMsg_VoiceData) {
 		// Get the users Steam ID 64.
 		steamId := strconv.Itoa(int(m.GetXuid()))
 		// Append voice data to map
